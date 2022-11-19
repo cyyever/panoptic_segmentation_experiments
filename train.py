@@ -8,8 +8,6 @@ from mmdet.models import build_detector
 # from mmseg.apis import set_random_seed, train_segmentor
 from mmseg.utils import get_device
 
-from datasets.coco import get_coco_panoptiic_dataset
-
 # from datasets.kitti import prepare_kitti_panoptiic_dataset
 
 if __name__ == "__main__":
@@ -29,9 +27,6 @@ if __name__ == "__main__":
     set_random_seed(0, deterministic=False)
     cfg.gpu_ids = range(1)
     cfg.device = get_device()
-
-    # Let's have a look at the final config used for training
-    # print(f"Config:\n{cfg.pretty_text}")
 
     # Build the dataset
     datasets = [build_dataset(cfg.data.train)]
