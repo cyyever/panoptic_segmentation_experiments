@@ -1,6 +1,6 @@
 import os
-import mmcv
 
+import mmcv
 from mmcv import Config
 from mmdet.apis import init_random_seed, set_random_seed, train_detector
 from mmdet.datasets import CocoPanopticDataset, build_dataset
@@ -34,10 +34,25 @@ if __name__ == "__main__":
         dict(type="Normalize", **cfg.img_norm_cfg),
         # dict(type="Pad", size=cfg.crop_size, pad_val=0, seg_pad_val=255),
         dict(type="DefaultFormatBundle"),
-        dict(type="Collect", keys=["img", "gt_semantic_seg"]),
+        # dict(type="Collect", keys=["img", "gt_semantic_seg"]),
     ]
     cfg.data.train["pipeline"] = cfg.train_pipeline
 
+    cfg.test_pipeline = [
+        dict(type="LoadImageFromFile"),
+        dict(type="LoadAnnotations"),
+        # dict(type="Resize", img_scale=(320, 240), ratio_range=(0.5, 2.0)),
+        # dict(type="RandomCrop", crop_size=cfg.crop_size, cat_max_ratio=0.75),
+        # dict(type="RandomFlip", flip_ratio=0.5),
+        # dict(type="PhotoMetricDistortion"),
+        dict(type="Normalize", **cfg.img_norm_cfg),
+        # dict(type="Pad", size=cfg.crop_size, pad_val=0, seg_pad_val=255),
+        dict(type="DefaultFormatBundle"),
+        # dict(type="Collect", keys=["img", "gt_semantic_seg"]),
+    ]
+    cfg.data.val["pipeline"] = cfg.test_pipeline
+    cfg.data.test["pipeline"] = cfg.test_pipeline
+    print(cfg.data)
     # cfg.test_pipeline = [
     #     dict(type="LoadImageFromFile"),
     #     dict(
@@ -58,7 +73,7 @@ if __name__ == "__main__":
     # Set up working dir to save files and logs.
     cfg.work_dir = "./work_dirs/tutorial"
 
-    cfg.runner.max_iters = 200
+    cfg.runner.max_epochs = 200
     cfg.log_config.interval = 10
     cfg.evaluation.interval = 200
     cfg.checkpoint_config.interval = 200
@@ -70,7 +85,7 @@ if __name__ == "__main__":
     cfg.device = get_device()
 
     # Let's have a look at the final config used for training
-    print(f"Config:\n{cfg.pretty_text}")
+    # print(f"Config:\n{cfg.pretty_text}")
 
     # Build the dataset
     datasets = [build_dataset(cfg.data.train)]
