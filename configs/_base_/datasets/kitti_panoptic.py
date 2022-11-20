@@ -11,6 +11,7 @@ from mmdet.datasets.coco_panoptic import CocoPanopticDataset
 class KITTIPanopticDataset(CocoPanopticDataset):
     CLASSES: list = []
     THING_CLASSES: list = []
+    STUFF_CLASSES: list = []
 
 
 def list_files(dirname: str) -> list:
@@ -19,20 +20,6 @@ def list_files(dirname: str) -> list:
         for f in os.listdir(dirname)
         if os.path.isfile(os.path.join(dirname, f))
     ]
-
-
-def generate_kitti_things(kitti_root: str) -> None:
-    things = set()
-    classes = set()
-    annotation_file = os.path.join(kitti_root, "training", "annotations.json")
-    with open(annotation_file, "rt", encoding="utf8") as f:
-        annotations = json.load(f)
-        for category in annotations["categories"]:
-            classes.add(category["name"])
-            if category["isthing"]:
-                things.add(category["name"])
-    KITTIPanopticDataset.CLASSES = list(sorted(classes))
-    KITTIPanopticDataset.THING_CLASSES = list(sorted(things))
 
 
 img_norm_cfg = dict(
@@ -52,27 +39,47 @@ train_pipeline = [
         keys=["img", "gt_bboxes", "gt_labels", "gt_masks", "gt_semantic_seg"],
     ),
 ]
+
 test_pipeline = [
     dict(type="LoadImageFromFile"),
-    dict(type="LoadPanopticAnnotations", with_bbox=True, with_mask=True, with_seg=True),
-    dict(type="Resize", img_scale=(1333, 800), keep_ratio=True),
-    dict(type="Normalize", **img_norm_cfg),
-    dict(type="Pad", size_divisor=32),
-    dict(type="SegRescale", scale_factor=1 / 4),
-    dict(type="DefaultFormatBundle"),
     dict(
-        type="Collect",
-        keys=["img", "gt_bboxes", "gt_labels", "gt_masks", "gt_semantic_seg"],
+        type="MultiScaleFlipAug",
+        img_scale=(1333, 800),
+        flip=False,
+        transforms=[
+            dict(type="Resize", keep_ratio=True),
+            dict(type="Normalize", **img_norm_cfg),
+            dict(type="Pad", size_divisor=32),
+            dict(type="ImageToTensor", keys=["img"]),
+            dict(type="Collect", keys=["img"]),
+        ],
     ),
 ]
 
 data_root = "/home/cyy/kitti_panoptic"
-generate_kitti_things(data_root)
+dataset_type = "KITTIPanopticDataset"
 
 training_dir = os.path.join(data_root, "training")
 validation_dir = os.path.join(data_root, "validation")
 
-dataset_type = "KITTIPanopticDataset"
+
+def generate_kitti_things(training_dir: str) -> None:
+    things = set()
+    classes = set()
+    annotation_file = os.path.join(training_dir, "annotations.json")
+    with open(annotation_file, "rt", encoding="utf8") as f:
+        annotations = json.load(f)
+        for category in annotations["categories"]:
+            classes.add(category["name"])
+            if category["isthing"]:
+                things.add(category["name"])
+    KITTIPanopticDataset.CLASSES = list(sorted(classes))
+    KITTIPanopticDataset.THING_CLASSES = list(sorted(things))
+    KITTIPanopticDataset.STUFF_CLASSES = list(sorted(classes - things))
+
+
+generate_kitti_things(training_dir)
+
 
 data = dict(
     samples_per_gpu=2,

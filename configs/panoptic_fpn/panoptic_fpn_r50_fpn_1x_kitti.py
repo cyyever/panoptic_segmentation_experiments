@@ -9,8 +9,8 @@ model = dict(
     type="PanopticFPN",
     semantic_head=dict(
         type="PanopticFPNHead",
-        num_things_classes=9,
-        num_stuff_classes=18,
+        num_things_classes=8,
+        num_stuff_classes=11,
         in_channels=256,
         inner_channels=128,
         start_level=0,
@@ -21,8 +21,8 @@ model = dict(
     ),
     panoptic_fusion_head=dict(
         type="HeuristicFusionHead",
-        num_things_classes=9,
-        num_stuff_classes=18,
+        num_things_classes=8,
+        num_stuff_classes=11,
     ),
     test_cfg=dict(
         panoptic=dict(
