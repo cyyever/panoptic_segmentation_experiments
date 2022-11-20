@@ -36,4 +36,5 @@ model = dict(
     ),
 )
 
+fp16 = dict(loss_scale=dict(init_scale=512))
 custom_hooks = []
