@@ -21,6 +21,7 @@ if __name__ == "__main__":
     cfg.work_dir = "./work_dirs/tutorial"
 
     cfg.runner.max_epochs = 100
+    cfg.checkpoint_config.interval = 5
 
     # # Set seed to facitate reproducing the result
     cfg.seed = 0
