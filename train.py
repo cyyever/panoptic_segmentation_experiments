@@ -11,7 +11,8 @@ from mmseg.utils import get_device
 # from datasets.kitti import prepare_kitti_panoptiic_dataset
 
 if __name__ == "__main__":
-    cfg = Config.fromfile("configs/panoptic_fpn/panoptic_fpn_r50_fpn_1x_coco.py")
+    # cfg = Config.fromfile("configs/panoptic_fpn/panoptic_fpn_r50_fpn_1x_coco.py")
+    cfg = Config.fromfile("configs/panoptic_fpn/panoptic_fpn_r50_fpn_1x_kitti.py")
 
     cfg.data.samples_per_gpu = 8
     cfg.data.workers_per_gpu = 8
@@ -19,8 +20,7 @@ if __name__ == "__main__":
     # Set up working dir to save files and logs.
     cfg.work_dir = "./work_dirs/tutorial"
 
-    # cfg.runner.max_epochs = 200
-    cfg.runner.max_iters = 200
+    cfg.runner.max_epochs = 100
 
     # # Set seed to facitate reproducing the result
     cfg.seed = 0
