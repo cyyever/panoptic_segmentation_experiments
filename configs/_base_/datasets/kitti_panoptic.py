@@ -56,7 +56,7 @@ test_pipeline = [
     ),
 ]
 
-data_root = "/home/cyy/kitti_panoptic"
+data_root = "/ssd2/kitti_panoptic"
 dataset_type = "KITTIPanopticDataset"
 
 training_dir = os.path.join(data_root, "training")
@@ -82,7 +82,7 @@ generate_kitti_things(training_dir)
 
 
 data = dict(
-    samples_per_gpu=2,
+    samples_per_gpu=8,
     workers_per_gpu=2,
     train=dict(
         type=dataset_type,
