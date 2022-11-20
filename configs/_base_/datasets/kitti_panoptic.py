@@ -106,4 +106,4 @@ data = dict(
         pipeline=test_pipeline,
     ),
 )
-evaluation = dict(interval=1, metric=["PQ"])
+evaluation = dict(interval=5, metric=["PQ"])
