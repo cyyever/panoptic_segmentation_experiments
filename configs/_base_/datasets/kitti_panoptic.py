@@ -3,6 +3,7 @@
 import json
 import os
 
+from cyy_naive_lib.algorithm.mapping_op import change_mapping_values
 from mmdet.datasets.builder import DATASETS
 from mmdet.datasets.coco_panoptic import CocoPanopticDataset
 
@@ -63,22 +64,75 @@ training_dir = os.path.join(data_root, "training")
 validation_dir = os.path.join(data_root, "validation")
 
 
-def generate_kitti_things(training_dir: str) -> None:
+def generate_kitti_things() -> None:
     things = set()
-    classes = set()
+    classes: dict = {}
     annotation_file = os.path.join(training_dir, "annotations.json")
+    class_name_to_id = {}
     with open(annotation_file, "rt", encoding="utf8") as f:
         annotations = json.load(f)
         for category in annotations["categories"]:
-            classes.add(category["name"])
+            category_id = int(category["id"])
+            assert category_id not in classes
+            classes[category_id] = category["name"]
+            assert category["name"] not in class_name_to_id
+            class_name_to_id[category["name"]] = category_id
             if category["isthing"]:
                 things.add(category["name"])
-    KITTIPanopticDataset.CLASSES = list(sorted(classes))
+    print(classes)
+
     KITTIPanopticDataset.THING_CLASSES = list(sorted(things))
-    KITTIPanopticDataset.STUFF_CLASSES = list(sorted(classes - things))
+    KITTIPanopticDataset.STUFF_CLASSES = list(sorted(set(classes.values()) - things))
+    KITTIPanopticDataset.CLASSES = (
+        KITTIPanopticDataset.THING_CLASSES + KITTIPanopticDataset.STUFF_CLASSES
+    )
+    category_id_map = {}
+    next_id = 0
+    for class_name in KITTIPanopticDataset.CLASSES:
+        category_id_map[class_name_to_id[class_name]] = next_id
+        next_id += 1
+    print("category_id_map is", category_id_map)
+    assert len(category_id_map) == len(classes)
+
+    def get_mapped_category_id(v):
+        return category_id_map[v]
+
+    with open(os.path.join(training_dir, "annotations.json"), "rt") as f:
+        training_annotations = json.load(f)
+        print(training_annotations["annotations"][0])
+        new_training_annotations = change_mapping_values(
+            d=training_annotations,
+            key="category_id",
+            f=get_mapped_category_id,
+        )
+        print("new", new_training_annotations["annotations"][0])
+        new_training_annotations["categories"] = change_mapping_values(
+            d=new_training_annotations["categories"],
+            key="id",
+            f=get_mapped_category_id,
+        )
+        with open(os.path.join(training_dir, "new_annotations.json"), "wt") as f:
+            json.dump(new_training_annotations, f)
+
+    with open(os.path.join(validation_dir, "annotations.json"), "rt") as f:
+        validation_annotations = json.load(f)
+        print(validation_annotations["annotations"][0])
+        new_validation_annotations = change_mapping_values(
+            d=validation_annotations,
+            key="category_id",
+            f=get_mapped_category_id,
+        )
+        print("new", new_validation_annotations["annotations"][0])
+        new_validation_annotations["categories"] = change_mapping_values(
+            d=new_validation_annotations["categories"],
+            key="id",
+            f=get_mapped_category_id,
+        )
+        with open(os.path.join(validation_dir, "new_annotations.json"), "wt") as f:
+            json.dump(new_validation_annotations, f)
 
 
-generate_kitti_things(training_dir)
+generate_kitti_things()
 
 
 data = dict(
@@ -86,14 +140,14 @@ data = dict(
     workers_per_gpu=2,
     train=dict(
         type=dataset_type,
-        ann_file=os.path.join(training_dir, "annotations.json"),
+        ann_file=os.path.join(training_dir, "new_annotations.json"),
         img_prefix=os.path.join(training_dir, "images"),
         seg_prefix=os.path.join(training_dir, "annotations"),
         pipeline=train_pipeline,
     ),
     val=dict(
         type=dataset_type,
-        ann_file=os.path.join(validation_dir, "annotations.json"),
+        ann_file=os.path.join(validation_dir, "new_annotations.json"),
         img_prefix=os.path.join(validation_dir, "images"),
         seg_prefix=os.path.join(validation_dir, "annotations"),
         pipeline=test_pipeline,
