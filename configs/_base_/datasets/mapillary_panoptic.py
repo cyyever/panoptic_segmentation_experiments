@@ -79,11 +79,6 @@ def generate_things() -> None:
     MaplliaryPanopticDataset.CLASSES = list(sorted(classes))
     MaplliaryPanopticDataset.THING_CLASSES = list(sorted(things))
     MaplliaryPanopticDataset.STUFF_CLASSES = list(sorted(classes - things))
-    # gfdgd
-    # print("things size is", len(MaplliaryPanopticDataset.THING_CLASSES))
-    # print("stuff size is", len(MaplliaryPanopticDataset.STUFF_CLASSES))
-    # fdsfdsfe
-    # fdsf
 
 
 generate_things()
