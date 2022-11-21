@@ -33,7 +33,7 @@ train_pipeline = [
     dict(type="RandomFlip", flip_ratio=0.5),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="Pad", size_divisor=32),
-    dict(type="SegRescale", scale_factor=1 / 4),
+    # dict(type="SegRescale", scale_factor=1 / 4),
     dict(type="DefaultFormatBundle"),
     dict(
         type="Collect",
@@ -83,11 +83,13 @@ def generate_kitti_things() -> None:
 
     KITTIPanopticDataset.THING_CLASSES = list(sorted(things))
     KITTIPanopticDataset.STUFF_CLASSES = list(sorted(set(classes.values()) - things))
+    print(len(KITTIPanopticDataset.THING_CLASSES))
+    print(len(KITTIPanopticDataset.STUFF_CLASSES))
     KITTIPanopticDataset.CLASSES = (
         KITTIPanopticDataset.THING_CLASSES + KITTIPanopticDataset.STUFF_CLASSES
     )
     category_id_map = {}
-    next_id = 0
+    next_id = 1
     for class_name in KITTIPanopticDataset.CLASSES:
         category_id_map[class_name_to_id[class_name]] = next_id
         next_id += 1
@@ -136,7 +138,7 @@ generate_kitti_things()
 
 
 data = dict(
-    samples_per_gpu=8,
+    samples_per_gpu=2,
     workers_per_gpu=2,
     train=dict(
         type=dataset_type,
@@ -154,10 +156,10 @@ data = dict(
     ),
     test=dict(
         type=dataset_type,
-        ann_file=os.path.join(validation_dir, "annotations.json"),
+        ann_file=os.path.join(validation_dir, "new_annotations.json"),
         img_prefix=os.path.join(validation_dir, "images"),
         seg_prefix=os.path.join(validation_dir, "annotations"),
         pipeline=test_pipeline,
     ),
 )
-evaluation = dict(interval=5, metric=["PQ"])
+evaluation = dict(interval=1, metric=["PQ"])
