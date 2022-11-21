@@ -99,39 +99,32 @@ def generate_kitti_things() -> None:
     def get_mapped_category_id(v):
         return category_id_map[v]
 
-    with open(os.path.join(training_dir, "annotations.json"), "rt") as f:
-        training_annotations = json.load(f)
-        print(training_annotations["annotations"][0])
-        new_training_annotations = change_mapping_values(
-            d=training_annotations,
-            key="category_id",
-            f=get_mapped_category_id,
-        )
-        print("new", new_training_annotations["annotations"][0])
-        new_training_annotations["categories"] = change_mapping_values(
-            d=new_training_annotations["categories"],
-            key="id",
-            f=get_mapped_category_id,
-        )
-        with open(os.path.join(training_dir, "new_annotations.json"), "wt") as f:
-            json.dump(new_training_annotations, f)
+    def remap_category(data_dir):
+        with open(
+            os.path.join(data_dir, "annotations.json"), "rt", encoding="utf8"
+        ) as f:
+            training_annotations = json.load(f)
+            print(training_annotations["annotations"][0])
+            new_training_annotations = change_mapping_values(
+                d=training_annotations,
+                key="category_id",
+                f=get_mapped_category_id,
+            )
+            print("new", new_training_annotations["annotations"][0])
+            new_training_annotations["categories"] = change_mapping_values(
+                d=new_training_annotations["categories"],
+                key="id",
+                f=get_mapped_category_id,
+            )
+            with open(
+                os.path.join(training_dir, "new_annotations.json"),
+                "wt",
+                encoding="utf8",
+            ) as f:
+                json.dump(new_training_annotations, f)
 
-    with open(os.path.join(validation_dir, "annotations.json"), "rt") as f:
-        validation_annotations = json.load(f)
-        print(validation_annotations["annotations"][0])
-        new_validation_annotations = change_mapping_values(
-            d=validation_annotations,
-            key="category_id",
-            f=get_mapped_category_id,
-        )
-        print("new", new_validation_annotations["annotations"][0])
-        new_validation_annotations["categories"] = change_mapping_values(
-            d=new_validation_annotations["categories"],
-            key="id",
-            f=get_mapped_category_id,
-        )
-        with open(os.path.join(validation_dir, "new_annotations.json"), "wt") as f:
-            json.dump(new_validation_annotations, f)
+    remap_category(training_dir)
+    remap_category(validation_dir)
 
 
 generate_kitti_things()
